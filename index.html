@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AuraCrypt Omega - Unified Matrix Platform</title>
+    <style>
+        :root {
+            /* High-Vibrancy Neon Accent Palettes blended seamlessly */
+            --bg-primary: #0b0e14;
+            --bg-secondary: #151a24;
+            --bg-tertiary: #1f2634;
+            --accent-color: #00b4d8;
+            --accent-hover: #0096c7;
+            --text-main: #f8f9fa;
+            --text-muted: #94a3b8;
+            --crypto-green: #06d6a0;
+            --crypto-red: #ef476f;
+            --crypto-warning: #ffd166;
+            --border-color: #2a3447;
+            --sidebar-width: 380px;
+            
+            /* High-Vibrancy Overlays */
+            --insta-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            --neon-pink: #d6249f;
+            --neon-purple: #285AEB;
+            --glass-specular: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body, html {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* App Onboarding / Guard Interface */
+        #auth-guard {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .auth-container {
+            background: rgba(21, 26, 36, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            text-align: center;
+            transform: scale(1);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .auth-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent-color), #074799);
+            border-radius: 20px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(0, 180, 216, 0.3);
+        }
+
+        .auth-logo svg { width: 40px; height: 40px; fill: var(--text-main); }
+        .auth-container h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .auth-container p { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; line-height: 1.5; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            gap: 10px;
+        }
+
+        .btn-primary { background-color: var(--accent-color); color: var(--bg-primary); }
+        .btn-primary:hover { background-color: var(--accent-hover); transform: translateY(-1px); }
+        .btn-secondary { background-color: transparent; color: var(--text-main); border: 1px solid var(--border-color); margin-top: 12px; }
+        .btn-secondary:hover { background-color: var(--bg-tertiary); }
+        .btn-insta { background: var(--insta-gradient); border: none; color: white; font-weight: bold; }
+
+        /* Identity Presentation Screen */
+        .identity-card {
+            background: var(--bg-primary);
+            border: 1px dashed var(--accent-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .id-label { font-size: 11px; text-transform: uppercase; color: var(--accent-color); letter-spacing: 1.5px; margin-bottom: 6px; }
+        .id-value { font-size: 32px; font-family: monospace; font-weight: 700; letter-spacing: 2px; color: var(--text-main); }
+        .seed-phrase-box {
+            background: var(--bg-tertiary); border-radius: 12px; padding: 16px; font-size: 13px; color: var(--crypto-warning);
+            font-family: monospace; line-height: 1.6; text-align: left; margin-bottom: 24px; border: 1px solid rgba(255, 209, 102, 0.2); word-spacing: 4px;
+        }
+
+        /* Main Workspace Structural Layout */
+        #app-workspace {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Left Action Dock (Communities & Scope Switchers) */
+        .action-dock {
+            width: 70px;
+            background-color: var(--bg-primary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 0;
+            gap: 16px;
+        }
+
+        .dock-item {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background-color: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.25s ease;
+            color: var(--text-muted);
+        }
+
+        .dock-item:hover, .dock-item.active { border-radius: 12px; background-color: var(--accent-color); color: var(--bg-primary); }
+        .dock-item svg { width: 22px; height: 22px; fill: currentColor; }
+        .dock-separator { width: 32px; height: 1px; background-color: var(--border-color); }
+        
+        .dock-badge {
+            position: absolute; top: -2px; right: -2px; background-color: var(--crypto-red);
+            color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; border: 2px solid var(--bg-primary);
+        }
+
+        /* Primary Sidebar Framework */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .sidebar-header { padding: 24px 20px 16px; }
+        .profile-strip { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .user-meta h2 { font-size: 20px; font-weight: 700; }
+        .user-meta p { font-size: 12px; color: var(--accent-color); font-family: monospace; margin-top: 2px; }
+
+        /* Stories Strip (Instagram adaptation inside sidebar) */
+        .stories-container { display: flex; gap: 12px; overflow-x: auto; padding: 12px 20px; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.01); }
+        .story-node { width: 52px; height: 52px; border-radius: 50%; padding: 2.5px; background: var(--insta-gradient); cursor: pointer; flex-shrink: 0; }
+        .story-inner { background: #151a24; width: 100%; height: 100%; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: var(--text-main); text-align: center; overflow: hidden; }
+
+        .search-wrapper { position: relative; display: flex; gap: 8px; margin-top: 12px; }
+        .search-bar {
+            width: 100%; background-color: var(--bg-tertiary); border: 1px solid transparent; border-radius: 10px;
+            padding: 12px 16px 12px 40px; color: var(--text-main); font-size: 14px; transition: all 0.2s ease;
+        }
+        .search-bar:focus { outline: none; border-color: var(--accent-color); background-color: var(--bg-primary); }
+        .search-icon { position: absolute; left: 14px; top: 13px; color: var(--text-muted); pointer-events: none; }
+        .search-icon svg { width: 16px; height: 16px; fill: currentColor; }
+
+        .btn-icon-add {
+            width: 44px; height: 44px; background-color: var(--bg-tertiary); border-radius: 10px; display: flex; align-items: center;
+            justify-content: center; color: var(--accent-color); cursor: pointer; border: none; flex-shrink: 0; transition: background 0.2s;
+        }
+        .btn-icon-add:hover { background-color: var(--border-color); }
+        .btn-icon-add svg { width: 20px; height: 20px; fill: currentColor; }
+
+        /* Dynamic Engine Lists */
+        .engine-list-container { flex: 1; overflow-y: auto; }
+        .list-tab-content { display: none; }
+        .list-tab-content.active { display: block; }
+
+        .chat-row {
+            display: flex; align-items: center; padding: 14px 20px; cursor: pointer;
+            border-bottom: 1px solid rgba(42, 52, 71, 0.3); transition: background 0.2s ease; position: relative;
+        }
+        .chat-row:hover { background-color: var(--bg-tertiary); }
+        .chat-row.active { background-color: rgba(0, 180, 216, 0.1); border-left: 3px solid var(--accent-color); }
+
+        .avatar {
+            width: 48px; height: 48px; border-radius: 14px; background-color: var(--bg-tertiary); display: flex;
+            align-items: center; justify-content: center; font-weight: 700; color: var(--accent-color); margin-right: 14px;
+            position: relative; border: 1px solid var(--border-color); font-family: monospace;
+        }
+        .status-dot { position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; border-radius: 50%; background-color: var(--crypto-green); border: 2px solid var(--bg-secondary); }
+
+        .row-details { flex: 1; min-width: 0; }
+        .row-meta-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .row-title { font-size: 15px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .row-time { font-size: 11px; color: var(--text-muted); }
+        .row-preview-box { display: flex; align-items: center; justify-content: space-between; }
+        .row-preview { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; }
+        .crypto-indicator { display: inline-flex; align-items: center; color: var(--crypto-green); }
+        .crypto-indicator svg { width: 12px; height: 12px; fill: currentColor; }
+
+        /* Main Messaging Node Canvas */
+        .conversation-node { flex: 1; background-color: var(--bg-primary); display: flex; flex-direction: column; position: relative; }
+        .blank-state {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; background-color: var(--bg-primary); z-index: 10; text-align: center; padding: 40px;
+        }
+        .blank-state svg { width: 120px; height: 120px; color: var(--border-color); margin-bottom: 24px; }
+
+        .node-header { height: 72px; background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 5; }
+        .active-entity-card { display: flex; align-items: center; }
+        .active-meta h3 { font-size: 16px; font-weight: 600; }
+        .active-meta p { font-size: 12px; color: var(--crypto-green); display: flex; align-items: center; gap: 4px; }
+
+        .node-actions { display: flex; align-items: center; gap: 12px; }
+        .action-circle {
+            width: 40px; height: 40px; border-radius: 10px; background-color: var(--bg-tertiary); display: flex; align-items: center;
+            justify-content: center; cursor: pointer; color: var(--text-main); border: none; transition: background 0.2s;
+        }
+        .action-circle:hover { background-color: var(--border-color); color: var(--accent-color); }
+        .action-circle svg { width: 18px; height: 18px; fill: currentColor; }
+
+        /* Stream Analytics Overlay Panel (Zangi Engine Metrics) */
+        .analytics-strip { background-color: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); padding: 6px 24px; display: flex; gap: 24px; font-family: monospace; font-size: 11px; color: var(--text-muted); }
+        .metric-item { display: flex; align-items: center; gap: 6px; }
+        .metric-val { color: var(--accent-color); font-weight: 700; }
+
+        /* Messages Pipeline Scroller */
+        .message-pipeline {
+            flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px;
+            background-image: radial-gradient(var(--bg-secondary) 1px, transparent 0); background-size: 24px 24px;
+        }
+
+        .msg-bubble-row { display: flex; width: 100%; }
+        .msg-bubble-row.incoming { justify-content: flex-start; }
+        .msg-bubble-row.outgoing { justify-content: flex-end; }
+        .msg-container { max-width: 65%; position: relative; }
+        .msg-sender-header { font-size: 11px; font-weight: 600; color: var(--accent-color); margin-bottom: 4px; font-family: monospace; }
+
+        .msg-bubble { padding: 12px 16px; border-radius: 16px; font-size: 14.5px; line-height: 1.5; position: relative; word-wrap: break-word; }
+        .incoming .msg-bubble { background-color: var(--bg-secondary); color: var(--text-main); border-top-left-radius: 4px; border: 1px solid var(--border-color); }
+        .outgoing .msg-bubble { background-color: var(--accent-color); color: var(--bg-primary); border-top-right-radius: 4px; font-weight: 500; }
+        
+        /* Interactive Element Toggles (Telegram Polls) */
+        .poll-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-top: 8px; width: 280px; border: 1px solid var(--border-color); }
+        .poll-option { background: rgba(255,255,255,0.05); padding: 10px; margin: 6px 0; border-radius: 8px; cursor: pointer; text-align: center; font-size: 13px; transition: background 0.2s; }
+        .poll-option:hover { background: rgba(255,255,255,0.1); }
+
+        .msg-meta-bottom { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 10px; margin-top: 4px; color: var(--text-muted); }
+        .outgoing .msg-meta-bottom { color: rgba(11, 14, 20, 0.7); }
+        .msg-meta-bottom svg { width: 12px; height: 12px; fill: currentColor; }
+
+        /* Input Control Frame */
+        .input-control-frame { padding: 16px 24px; background-color: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 14px; }
+        .input-field-wrapper { flex: 1; position: relative; }
+        .msg-input { width: 100%; background-color: var(--bg-tertiary); border: 1px solid transparent; border-radius: 12px; padding: 14px 16px; color: var(--text-main); font-size: 14.5px; transition: all 0.2s ease; }
+        .msg-input:focus { outline: none; border-color: var(--accent-color); background-color: var(--bg-primary); }
+
+        /* Inspector Telemetry Panel (Right Side Rail Extension) */
+        .inspector-panel { width: 300px; background-color: var(--bg-secondary); border-left: 1px solid var(--border-color); padding: 24px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+        .panel-block { background: var(--bg-primary); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .panel-block h5 { font-size: 12px; text-transform: uppercase; color: var(--accent-color); margin-bottom: 8px; letter-spacing: 0.5px; }
+
+        /* VOIP / WebRTC Calling Engine Overlays */
+        #call-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(11, 14, 20, 0.96);
+            z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px;
+        }
+        .call-card { text-align: center; max-width: 400px; width: 100%; }
+        .call-avatar {
+            width: 120px; height: 120px; border-radius: 36px; background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--border-color) 100%);
+            border: 2px solid var(--accent-color); margin: 0 auto 32px; display: flex; align-items: center; justify-content: center;
+            font-size: 40px; font-weight: 700; color: var(--accent-color); box-shadow: 0 0 50px rgba(0, 180, 216, 0.15);
+        }
+        .call-identity { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        .call-state { font-size: 14px; color: var(--crypto-green); font-family: monospace; margin-bottom: 48px; letter-spacing: 1px;}
+
+        .video-canvas-grid { display: none; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 900px; height: 400px; margin-bottom: 48px; }
+        .video-block { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 20px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .video-label { position: absolute; bottom: 16px; left: 16px; background: rgba(11, 14, 20, 0.7); padding: 4px 12px; border-radius: 8px; font-size: 12px; font-family: monospace; }
+        .video-placeholder-avatar { font-size: 32px; color: var(--text-muted); font-weight: 700; }
+
+        .call-controls { display: flex; gap: 24px; justify-content: center; }
+        .btn-call-action { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; color: white; transition: transform 0.2s; }
+        .btn-call-action:hover { transform: scale(1.05); }
+        .btn-call-hangup { background-color: var(--crypto-red); }
+        .btn-call-toggle { background-color: var(--bg-tertiary); color: var(--text-main); border: 1px solid var(--border-color); }
+
+        /* Contextual Modals System */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(11, 14, 20, 0.8); z-index: 10005; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-box { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 20px; padding: 32px; width: 100%; max-width: 440px; box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
+        .modal-box h3 { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+        .modal-box p { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; letter-spacing: 0.5px;}
+        .form-control { width: 100%; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px; color: var(--text-main); font-size: 15px; }
+        .form-control:focus { outline: none; border-color: var(--accent-color); }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 28px; }
+        .modal-actions .btn { width: auto; padding: 10px 20px; font-size: 14px; }
+
+        /* Notification Engine System toast */
+        #toast-pipeline { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 12px; z-index: 10010; }
+        .toast-node {
+            background-color: var(--bg-secondary); border-left: 4px solid var(--accent-color); border-radius: 8px; padding: 16px 20px; min-width: 300px; max-width: 400px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 14px; transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast-node.active { transform: translateX(0); }
+        .toast-icon { color: var(--accent-color); }
+        .toast-body h4 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+        .toast-body p { font-size: 12px; color: var(--text-muted); }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-guard">
+        <div class="auth-container" id="auth-stage-1">
+            <div class="auth-logo">
+                <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            </div>
+            <h1>AuraCrypt Omega</h1>
+            <p>End-to-End Encrypted Unified Communication Node.<br>Zero Metadata Trackers. Deployed via Isolated P2P Routers.</p>
+            <button class="btn btn-primary" onclick="AppEngine.Identity.generate()">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+                Provision Anonymous Identity Matrix
+            </button>
+            <button class="btn btn-secondary" onclick="AppEngine.Modals.show('restore-modal')">Restore Existing Secret Seed</button>
+        </div>
+
+        <div class="auth-container hidden" id="auth-stage-2">
+            <div class="auth-logo">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            </div>
+            <h1>Identity Provisioned</h1>
+            <p>Your unique network node pointer address has been synchronized successfully.</p>
+            <div class="identity-card">
+                <div class="id-label">Assigned Application Node ID</div>
+                <div class="id-value" id="generated-id-display">000-000-000</div>
+            </div>
+            <div class="id-label" style="text-align: left; margin-bottom: 4px;">Cryptographic Seed Recovery Phrase</div>
+            <div class="seed-phrase-box" id="generated-seed-display">loading structural seed parameters...</div>
+            <button class="btn btn-primary" onclick="AppEngine.Identity.finalize()">Initialize Workspace Environment</button>
+        </div>
+    </div>
+
+    <div id="app-workspace">
+        
+        <div class="action-dock">
+            <div class="dock-item active" data-dock-target="chats" title="Direct Encrypted Channels" onclick="AppEngine.Navigation.switchDock(this)">
+                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+                <div class="dock-badge" id="badge-total-chats">2</div>
+            </div>
+            <div class="dock-item" data-dock-target="channels" title="Anonymous Broadcasting Nodes" onclick="AppEngine.Navigation.switchDock(this)">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 12H4v-2h11v2zm0-4H4v-2h11v2zm5-4H4V6h16v2z"/></svg>
+            </div>
+            <div class="dock-separator"></div>
+            <div class="dock-item" data-dock-target="sms-bridge" title="PSTN SMS Transport Gateway" onclick="AppEngine.Navigation.switchDock(this)">
+                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="profile-strip">
+                    <div class="user-meta">
+                        <h2>AuraCrypt Cluster</h2>
+                        <p id="local-profile-badge">ADDR: Unassigned</p>
+                    </div>
+                </div>
+
+                <div class="stories-container" id="stories-strip">
+                    <div class="story-node" onclick="AppEngine.Identity.publishStoryPrompt()">
+                        <div class="story-inner">+ Story</div>
+                    </div>
+                </div>
+
+                <div class="search-wrapper">
+                    <div class="search-icon">
+                        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    </div>
+                    <input type="text" class="search-bar" id="directory-search-input" placeholder="Search verified node matrices..." oninput="AppEngine.Directory.search(this.value)">
+                    <button class="btn-icon-add" title="Open Pipe Path Vector" onclick="AppEngine.Modals.show('add-peer-modal')">
+                        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="engine-list-container">
+                <div id="dock-content-chats" class="list-tab-content active"></div>
+                <div id="dock-content-channels" class="list-tab-content"></div>
+                <div id="dock-content-sms-bridge" class="list-tab-content">
+                    <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size:13.5px;">
+                        <p>SMS Hardware Transport Protocol requires physical cellular radio baseband interface links.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="conversation-node">
+            <div class="blank-state" id="viewport-blank-screen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <h2>Secure Pipeline Standby Matrix</h2>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px; max-width: 320px;">Select a routing verification identifier string array block from the left panel interface rail to initialize communication protocols.</p>
+            </div>
+
+            <div class="node-header">
+                <div class="active-entity-card">
+                    <div class="avatar" id="active-viewport-avatar">??</div>
+                    <div class="active-meta">
+                        <h3 id="active-viewport-title">Routing Bridge</h3>
+                        <p id="active-viewport-subtitle"><span class="status-dot" style="position:static; display:inline-block; margin-right:6px;"></span>Tunnel Link Synchronized</p>
+                    </div>
+                </div>
+                <div class="node-actions">
+                    <button class="action-circle" title="Establish Secure Voice Layer Link Voice Stream" onclick="AppEngine.Voip.initializeCall('voice')">
+                        <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                    </button>
+                    <button class="action-circle" title="Video Vector Pipeline Stream" onclick="AppEngine.Voip.initializeCall('video')">
+                        <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="analytics-strip">
+                <div class="metric-item">CHANNEL RATE: <span class="metric-val" id="telemetry-rate">9.6 Kbps</span></div>
+                <div class="metric-item">PACKET LOSS: <span class="metric-val" id="telemetry-loss">0.00%</span></div>
+                <div class="metric-item">ROUTER PING: <span class="metric-val" id="telemetry-latency">Pulse checking...</span></div>
+            </div>
+
+            <div class="message-pipeline" id="message-flow-stream"></div>
+
+            <div class="input-control-frame">
+                <button class="action-circle" title="Inject Cryptographic Payload Form Object Block Attachment" style="flex-shrink:0;" onclick="AppEngine.MockInteraction.simulateFileAttachment()">
+                    <svg viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-3.31 2.69-6 6-6s6 2.69 6 6v10c0 4.42-3.58 8-8 8s-8-3.58-8-8V4h2v11c0 3.31 2.69 6 6 6s6-2.69 6-6V5c0-2.21-1.79-4-4-4s-4 1.79-4 4v11.5c0 1.1.9 2 2 2s2-.9 2-2V6h2z"/></svg>
+                </button>
+                <div class="input-field-wrapper">
+                    <input type="text" class="msg-input" id="terminal-input-field" placeholder="Transmit secure protocol packet data strings down the pipeline..." onkeydown="if(event.key === 'Enter') AppEngine.Messaging.dispatchText()">
+                </div>
+                <button class="action-circle" title="Transmit Packet" style="flex-shrink:0; background-color: var(--accent-color); color: var(--bg-primary);" onclick="AppEngine.Messaging.dispatchText()">
+                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="inspector-panel">
+            <h3>Telemetry Node</h3>
+            <div class="panel-block">
+                <h5>Node Configuration</h5>
+                <div style="font-size: 13px; line-height: 1.4; color: var(--text-muted)">
+                    <strong>Matrix OS:</strong> v4.7.5-Omega<br>
+                    <strong>Cipher Deck:</strong> AES-GCM-256<br>
+                    <strong>Handshake:</strong> ECDH-X25519
+                </div>
+            </div>
+            <div class="panel-block">
+                <h5>Automation Interface</h5>
+                <button class="btn btn-primary btn-insta" style="padding: 8px 16px; font-size: 12px;" onclick="AppEngine.Bridge.spawnAutomaton()">Boot Agent Process</button>
+                <div id="bot-status-frame" style="margin-top:10px; font-size:11px; color: var(--text-muted);">Agent Status: Uninitialized.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="call-overlay">
+        <div class="call-card">
+            <div class="call-avatar" id="call-viewport-avatar">??</div>
+            <div class="call-identity" id="call-viewport-identity">Secure Gateway Pointer Address</div>
+            <div class="call-state" id="call-viewport-state">RINGING LINK PACKET HANDSHAKES...</div>
+
+            <div class="video-canvas-grid" id="call-video-grid">
+                <div class="video-block">
+                    <div class="video-placeholder-avatar">LOCAL ADDR</div>
+                    <div class="video-label">Client Frame Loopback (Cam Output)</div>
+                </div>
+                <div class="video-block">
+                    <div class="video-placeholder-avatar" id="remote-video-avatar">??</div>
+                    <div class="video-label" id="remote-video-label">Remote Network Vector Stream Buffer</div>
+                </div>
+            </div>
+
+            <div class="call-controls">
+                <button class="btn-call-action btn-call-toggle" title="Mute Microphone Audio Input Channel Bus Layer">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+                </button>
+                <button class="btn-call-action btn-call-hangup" title="Terminate Signal Vector Path Session Pipeline Link" onclick="AppEngine.Voip.terminateCall()">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 9c-2.2 0-4.3.4-6.2 1.1v4.3c0 .6.5 1.1 1.1 1.1 1.3 0 2.6-.2 3.8-.6.5-.2.9-.6.9-1.1v-2c1.3-.4 2.7-.4 4-.1v2.1c0 .5.4.9.9 1.1 1.2.4 2.4.6 3.8.6.6 0 1.1-.5 1.1-1.1v-4.3c-2-.7-4.1-1.1-6.4-1.1z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="add-peer-modal">
+        <div class="modal-box">
+            <h3>Add Peer Connection Channel</h3>
+            <p>Input a verified node pointer registration reference number string sequence below to spin up custom message streams.</p>
+            <div class="form-group">
+                <label>Target Peer Application Node Hex ID</label>
+                <input type="text" class="form-control" id="peer-allocation-target-input" placeholder="e.g., 409-112-885" value="409-112-885">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" style="margin:0;" onclick="AppEngine.Modals.closeAll()">Dismiss</button>
+                <button class="btn btn-primary" onclick="AppEngine.Bridge.initializeManualTargetChannel()">Bind Pipe Matrix</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="restore-modal">
+        <div class="modal-box">
+            <h3>Restore Cryptographic Keyring Seed</h3>
+            <p>Paste your 12-word mnemonic phrase statement to rebuild local state directory maps.</p>
+            <div class="form-group">
+                <label>Secret Backup Mnemonic Sentence Block</label>
+                <input type="text" class="form-control" placeholder="alpha bravo charlie delta echo foxtrot..." value="alpha bravo charlie delta echo foxtrot">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" style="margin:0;" onclick="AppEngine.Modals.closeAll()">Abort</button>
+                <button class="btn btn-primary" onclick="AppEngine.Identity.restoreSeed()">Verify Seed</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-pipeline"></div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        const CONFIG = { SERVER_URL: "http://localhost:3000" };
+
+        const AppEngine = (() => {
+
+            // Full Scale Internal Application Database Engine State Model Registry
+            const SystemState = {
+                myIdentityNodeAddress: null,
+                activeDockContext: 'chats',
+                selectedEntityId: null,
+                searchQueryFilter: '',
+                socket: null,
+                registryDatabase: {
+                    chats: [
+                        {
+                            id: "302-881-904",
+                            alias: "🔒 Cryptographic Proxy Node Alpha",
+                            type: "chat",
+                            timestamp: "14:32",
+                            messages: [
+                                { senderId: "302-881-904", text: "Decryption sequences validated. Safe channel handshake established.", time: "14:30" },
+                                { senderId: "client", text: "Acknowledged. Standing by for database replication schemas.", time: "14:31" },
+                                { senderId: "302-881-904", text: "Ready to push matrix arrays.", time: "14:32" }
+                            ]
+                        },
+                        {
+                            id: "551-002-763",
+                            alias: "📡 Anonymous Routing Intermediary",
+                            type: "chat",
+                            timestamp: "Yesterday",
+                            messages: [
+                                { senderId: "551-002-763", text: "Incoming logs packets have been bounced through 3 regional mixers.", time: "Yesterday" }
+                            ]
+                        }
+                    ],
+                    channels: [
+                        {
+                            id: "CH-GLOBAL",
+                            alias: "📢 Global Network Terminal Feed",
+                            type: "channel",
+                            timestamp: "Continuous",
+                            messages: [
+                                { senderId: "SERVER_ROUTER", text: "Welcome to the AuraCrypt distributed communication grid framework mesh loop.", time: "System" }
+                            ]
+                        }
+                    ],
+                    stories: [
+                        { author: "Alpha", caption: "System Check OK" },
+                        { author: "Proxy", caption: "Bouncing through proxy grids" }
+                    ]
+                }
+            };
+
+            // Notification Engine System Toast Event Handler Trigger
+            const ToastEngine = {
+                trigger: (title, description) => {
+                    const pipeline = document.getElementById('toast-pipeline');
+                    const toast = document.createElement('div');
+                    toast.className = 'toast-node';
+                    toast.innerHTML = `
+                        <div class="toast-icon">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                        </div>
+                        <div class="toast-body">
+                            <h4>${title}</h4>
+                            <p>${description}</p>
+                        </div>
+                    `;
+                    pipeline.appendChild(toast);
+                    setTimeout(() => toast.classList.add('active'), 50);
+                    setTimeout(() => {
+                        toast.classList.remove('active');
+                        setTimeout(() => toast.remove(), 400);
+                    }, 4000);
+                }
+            };
+
+            // Account Setup and Private Identity Presentation Engine
+            const IdentityEngine = {
+                generate: () => {
+                    const blockA = Math.floor(100 + Math.random() * 900);
+                    const blockB = Math.floor(100 + Math.random() * 900);
+                    const blockC = Math.floor(100 + Math.random() * 900);
+                    SystemState.myIdentityNodeAddress = `${blockA}-${blockB}-${blockC}`;
+
+                    const words = ["quantum", "entropy", "cipher", "matrix", "beacon", "kernel", "vertex", "cascade", "vortex", "shadow", "proxy", "nebula"];
+                    const shuffled = words.sort(() => 0.5 - Math.random()).slice(0, 6).join(" ");
+
+                    document.getElementById('generated-id-display').innerText = SystemState.myIdentityNodeAddress;
+                    document.getElementById('generated-seed-display').innerText = shuffled;
+
+                    document.getElementById('auth-stage-1').classList.add('hidden');
+                    document.getElementById('auth-stage-2').classList.remove('hidden');
+                    ToastEngine.trigger("Keys Generated", "Asymmetric curves compiled cleanly in background memory loops.");
+                },
+                restoreSeed: () => {
+                    SystemState.myIdentityNodeAddress = "771-420-912";
+                    ModalsEngine.closeAll();
+                    document.getElementById('auth-stage-1').classList.add('hidden');
+                    document.getElementById('auth-stage-2').classList.remove('hidden');
+                    document.getElementById('generated-id-display').innerText = SystemState.myIdentityNodeAddress;
+                    document.getElementById('generated-seed-display').innerText = "restored mnemonic seed validated successfully via local runtime sandbox arrays";
+                },
+                finalize: () => {
+                    document.getElementById('auth-guard').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('auth-guard').classList.add('hidden');
+                        document.getElementById('app-workspace').style.opacity = '1';
+                    }, 500);
+                    document.getElementById('local-profile-badge').innerText = `ADDR: ${SystemState.myIdentityNodeAddress}`;
+                    
+                    // Fire network synchronization loop triggers
+                    BridgeEngine.connectNetworkTransceiver(SystemState.myIdentityNodeAddress);
+                    DirectoryEngine.renderActiveContextList();
+                    DirectoryEngine.renderStoriesStrip();
+                    ToastEngine.trigger("Session Initialized", `Secure handshake tunnel bound to address node ${SystemState.myIdentityNodeAddress}`);
+                },
+                publishStoryPrompt: () => {
+                    const caption = prompt("Enter text message string content payload to pin to the Stories Strip context view array loops:");
+                    if (!caption) return;
+                    SystemState.registryDatabase.stories.unshift({ author: SystemState.myIdentityNodeAddress ? SystemState.myIdentityNodeAddress.substring(0,5) : "Node", caption: caption });
+                    if (SystemState.socket) {
+                        SystemState.socket.emit('publish-story', { author: SystemState.myIdentityNodeAddress, caption: caption });
+                    } else {
+                        DirectoryEngine.renderStoriesStrip();
+                    }
+                }
+            };
+
+            // Left Navigation Scope Transition Controllers
+            const NavigationEngine = {
+                switchDock: (element) => {
+                    document.querySelectorAll('.dock-item').forEach(d => d.classList.remove('active'));
+                    element.classList.add('active');
+
+                    const targetedContext = element.getAttribute('data-dock-target');
+                    SystemState.activeDockContext = targetedContext;
+
+                    document.querySelectorAll('.list-tab-content').forEach(tc => tc.classList.remove('active'));
+                    const listTarget = document.getElementById(`dock-content-${targetedContext}`);
+                    if(listTarget) listTarget.classList.add('active');
+
+                    DirectoryEngine.renderActiveContextList();
+                }
+            };
+
+            // Lists Rendering & Realtime Filtering Search Array Engines
+            const DirectoryEngine = {
+                renderActiveContextList: () => {
+                    const targetContainer = document.getElementById(`dock-content-${SystemState.activeDockContext}`);
+                    if (!targetContainer) return;
+
+                    const dataPool = SystemState.registryDatabase[SystemState.activeDockContext];
+                    if (!dataPool || dataPool.length === 0) {
+                        targetContainer.innerHTML = `<div style="padding: 40px 20px; text-align: center; color: var(--text-muted); font-size:13px;">No active transmission sequences available in this segment module.</div>`;
+                        return;
+                    }
+
+                    // Apply Search Query Filter criteria matching logic constraints cleanly
+                    const filtered = dataPool.filter(item => {
+                        if (!SystemState.searchQueryFilter) return true;
+                        return item.alias.toLowerCase().includes(SystemState.searchQueryFilter.toLowerCase()) || 
+                               item.id.includes(SystemState.searchQueryFilter);
+                    });
+
+                    targetContainer.innerHTML = filtered.map(node => {
+                        const lastMessage = node.messages.length > 0 ? node.messages[node.messages.length - 1].text : "Empty transmission pipeline.";
+                        const isCurrentActive = SystemState.selectedEntityId === node.id ? 'active' : '';
+                        
+                        return `
+                            <div class="chat-row ${isCurrentActive}" onclick="AppEngine.Directory.selectEntity('${node.id}')">
+                                <div class="avatar">
+                                    ${node.alias.substring(0, 2).replace(/[^a-zA-Z0-9]/g, 'Ω')}
+                                    <div class="status-dot"></div>
+                                </div>
+                                <div class="row-details">
+                                    <div class="row-meta-top">
+                                        <div class="row-title">${node.alias}</div>
+                                        <div class="row-time">${node.timestamp || 'Active'}</div>
+                                    </div>
+                                    <div class="row-preview-box">
+                                        <div class="row-preview">${lastMessage}</div>
+                                        <div class="crypto-indicator">
+                                            <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    // Dynamically recalculate configuration metrics count badges inside runtime
+                    const totalChats = SystemState.registryDatabase.chats.length;
+                    document.getElementById('badge-total-chats').innerText = totalChats;
+                },
+                renderStoriesStrip: () => {
+                    const strip = document.getElementById('stories-strip');
+                    if (!strip) return;
+                    strip.innerHTML = `<div class="story-node" onclick="AppEngine.Identity.publishStoryPrompt()"><div class="story-inner">+ Story</div></div>`;
+                    
+                    SystemState.registryDatabase.stories.forEach(story => {
+                        const node = document.createElement('div');
+                        node.className = 'story-node';
+                        node.title = story.caption;
+                        node.onclick = () => alert(`[STORY SNAPSHOT BROADCAST BY node ${story.author}]: "${story.caption}"`);
+                        node.innerHTML = `<div class="story-inner">${story.author.substring(0, 3).toUpperCase()}</div>`;
+                        strip.appendChild(node);
+                    });
+                },
+                selectEntity: (id) => {
+                    SystemState.selectedEntityId = id;
+                    document.getElementById('viewport-blank-screen').classList.add('hidden');
+
+                    const dataset = SystemState.registryDatabase[SystemState.activeDockContext];
+                    const chosenNode = dataset.find(x => x.id === id);
+
+                    if(chosenNode) {
+                        document.getElementById('active-viewport-title').innerText = chosenNode.alias;
+                        document.getElementById('active-viewport-subtitle').innerHTML = `<span class="status-dot" style="position:static; display:inline-block; margin-right:6px;"></span>Node Routing ID: ${chosenNode.id}`;
+                        document.getElementById('active-viewport-avatar').innerText = chosenNode.alias.substring(0, 2).replace(/[^a-zA-Z0-9]/g, 'Ω');
+                    }
+
+                    DirectoryEngine.renderActiveContextList();
+                    MessagingEngine.renderMessageFlowStream();
+                },
+                search: (val) => {
+                    SystemState.searchQueryFilter = val.trim();
+                    DirectoryEngine.renderActiveContextList();
+                }
+            };
+
+            // Messaging Thread Management Pipeline Data Transmitters
+            const MessagingEngine = {
+                renderMessageFlowStream: () => {
+                    const scroller = document.getElementById('message-flow-stream');
+                    if (!scroller || !SystemState.selectedEntityId) return;
+
+                    const dataset = SystemState.registryDatabase[SystemState.activeDockContext];
+                    const currentEntity = dataset.find(x => x.id === SystemState.selectedEntityId);
+                    if (!currentEntity) return;
+
+                    scroller.innerHTML = currentEntity.messages.map(msg => {
+                        const isClient = msg.senderId === 'client' || msg.senderId === SystemState.myIdentityNodeAddress;
+                        const directionClass = isClient ? 'outgoing' : 'incoming';
+                        const displaySenderId = isClient ? 'LOCAL CLIENT NODE' : `PEER ADDR: ${msg.senderId}`;
+                        
+                        // Detect if a simulated Telegram Poll object payload block structure is nested within context strings
+                        let injectedPollHtml = "";
+                        if (msg.text.includes("[POLL_PROP_VECTOR_INJECTION]")) {
+                            injectedPollHtml = `
+                                <div class="poll-box">
+                                    <div style="font-size:12px; font-weight:bold; margin-bottom:8px; color:var(--crypto-warning);">📊 Active Distributed Network Poll</div>
+                                    <div class="poll-option" onclick="AppEngine.MockInteraction.votePoll(this)">Authorize Route Access Pointer</div>
+                                    <div class="poll-option" onclick="AppEngine.MockInteraction.votePoll(this)">Drop Traffic Relay Handshakes</div>
+                                </div>
+                            `;
+                        }
+
+                        return `
+                            <div class="msg-bubble-row ${directionClass}">
+                                <div class="msg-container">
+                                    <div class="msg-sender-header">${displaySenderId}</div>
+                                    <div class="msg-bubble">
+                                        ${msg.text.replace("[POLL_PROP_VECTOR_INJECTION]", "")}
+                                        ${injectedPollHtml}
+                                    </div>
+                                    <div class="msg-meta-bottom">
+                                        <span>${msg.time || '12:00'}</span>
+                                        ${isClient ? `
+                                            <svg viewBox="0 0 24 24" width="12" height="12"><path d="M18 7l-1.41-1.41-6.59 6.59-2.59-2.58-1.41 1.41 4 4zm4.59 0l-1.41-1.41-6.59 6.59-1.18-1.17-1.42 1.41 2.59 2.58z"/></svg>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    scroller.scrollTop = scroller.scrollHeight;
+                },
+                dispatchText: () => {
+                    const inputField = document.getElementById('terminal-input-field');
+                    const textContent = inputField.value.trim();
+
+                    if (!textContent || !SystemState.selectedEntityId) return;
+
+                    const dataset = SystemState.registryDatabase[SystemState.activeDockContext];
+                    const activeNode = dataset.find(x => x.id === SystemState.selectedEntityId);
+                    
+                    if (!activeNode) return;
+
+                    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const newPayloadMessage = { senderId: SystemState.myIdentityNodeAddress || 'client', text: textContent, time: timestamp };
+                    
+                    activeNode.messages.push(newPayloadMessage);
+
+                    // If live Socket interface bridge connections are alive up the stack route array pointers
+                    if (SystemState.socket) {
+                        SystemState.socket.emit('transmit-payload', {
+                            senderId: SystemState.myIdentityNodeAddress,
+                            targetId: SystemState.selectedEntityId,
+                            content: textContent
+                        });
+                    }
+
+                    MessagingEngine.renderMessageFlowStream();
+                    DirectoryEngine.renderActiveContextList();
+                    inputField.value = '';
+                }
+            };
+
+            // VOIP Streaming Realtime Peer Simulation Layer Module (Voice / Video Matrix Calls)
+            const VoipEngine = {
+                initializeCall: (callMode) => {
+                    if (!SystemState.selectedEntityId) return;
+
+                    const dataset = SystemState.registryDatabase[SystemState.activeDockContext];
+                    const targetEntity = dataset.find(x => x.id === SystemState.selectedEntityId);
+                    if (!targetEntity) return;
+
+                    document.getElementById('call-viewport-identity').innerText = targetEntity.alias;
+                    document.getElementById('call-viewport-avatar').innerText = targetEntity.alias.substring(0, 2).replace(/[^a-zA-Z0-9]/g, 'Ω');
+                    document.getElementById('call-viewport-state').innerText = "SYNCHRONIZING SECURE TUNNEL HANDSHAKE SIGNALS...";
+
+                    const videoGrid = document.getElementById('call-video-grid');
+                    if (callMode === 'video') {
+                        videoGrid.style.display = 'grid';
+                        document.getElementById('remote-video-avatar').innerText = targetEntity.alias.substring(0, 2).replace(/[^a-zA-Z0-9]/g, 'Ω');
+                        document.getElementById('remote-video-label').innerText = `Remote Video Buffer [${targetEntity.id}]`;
+                    } else {
+                        videoGrid.style.display = 'none';
+                    }
+
+                    document.getElementById('call-overlay').style.display = 'flex';
+
+                    // Simulate cryptographic key verification sequence frames cleanly over runtime
+                    setTimeout(() => {
+                        document.getElementById('call-viewport-state').innerText = "🔒 LINK ESTABLISHED: ENCRYPTED VIA SRTP (AES-GCM-256)";
+                        ToastEngine.trigger("VoIP Call Pipeline Active", "Realtime media transcode descriptors locked into hardware acceleration channels.");
+                    }, 2000);
+                },
+                terminateCall: () => {
+                    document.getElementById('call-overlay').style.display = 'none';
+                    ToastEngine.trigger("Media Stream Closed", "Signaling pipeline isolated. Loopback tracks cleanly purged from scratchpad stack matrices.");
+                }
+            };
+
+            // Network Transceiver Layer Setup Interface (Socket.io Integration Wrapper Bridge)
+            const BridgeEngine = {
+                connectNetworkTransceiver: (verifiedNodeId) => {
+                    // Fail gracefully into local simulated loop loops if server endpoints are missing from hosting ports
+                    try {
+                        SystemState.socket = io(CONFIG.SERVER_URL, { timeout: 3000, reconnectionAttempts: 2 });
+                        
+                        SystemState.socket.on('connect', () => {
+                            ToastEngine.trigger("Socket Matrix Online", "Transceiver socket pipeline handshake verified.");
+                            SystemState.socket.emit('join-broadcast-hub', { hubId: 'CH-GLOBAL', type: 'channel', number: verifiedNodeId });
+                        });
+
+                        SystemState.socket.on('incoming-payload', (packet) => {
+                            BridgeEngine.ingestIncomingPacket(packet);
+                        });
+
+                        SystemState.socket.on('story-sync', (storiesData) => {
+                            if(Array.isArray(storiesData)) {
+                                SystemState.registryDatabase.stories = storiesData;
+                                DirectoryEngine.renderStoriesStrip();
+                            }
+                        });
+
+                        SystemState.socket.on('connect_error', () => {
+                            // Fallback telemetry generation
+                            document.getElementById('telemetry-latency').innerText = "Local Simulation Node Mode";
+                        });
+
+                    } catch(e) {
+                        document.getElementById('telemetry-latency').innerText = "Offline Simulation Mode Active";
+                    }
+
+                    // Setup periodic loop telemetry simulation monitor checks
+                    setInterval(() => {
+                        if (SystemState.socket && SystemState.socket.connected) {
+                            const startMarker = Date.now();
+                            SystemState.socket.emit('ping-telemetry', {}, () => {
+                                const delta = Date.now() - startMarker;
+                                document.getElementById('telemetry-latency').innerText = `${delta}ms (P2P Cluster Node)`;
+                            });
+                        } else {
+                            const randomLatency = Math.floor(15 + Math.random() * 25);
+                            document.getElementById('telemetry-latency').innerText = `${randomLatency}ms (Simulated Local Sandbox Loop)`;
+                        }
+                    }, 6000);
+                },
+                ingestIncomingPacket: (packet) => {
+                    let targetPool = SystemState.registryDatabase.chats;
+                    let targetNode = targetPool.find(c => c.id === packet.senderId);
+                    
+                    if (!targetNode) {
+                        targetNode = {
+                            id: packet.senderId,
+                            alias: `Terminal Address [${packet.senderId}]`,
+                            type: 'chat',
+                            messages: []
+                        };
+                        targetPool.unshift(targetNode);
+                        DirectoryEngine.renderActiveContextList();
+                    }
+
+                    targetNode.messages.push({
+                        senderId: packet.senderId,
+                        text: packet.content,
+                        time: packet.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    });
+
+                    if (SystemState.selectedEntityId === packet.senderId) {
+                        MessagingEngine.renderMessageFlowStream();
+                    }
+                    ToastEngine.trigger("Incoming Matrix Packet Received", `Data payload processed from target segment: ${packet.senderId}`);
+                },
+                initializeManualTargetChannel: () => {
+                    const targetNodeInput = document.getElementById('peer-allocation-target-input').value.trim();
+                    if (!targetNodeInput) return;
+
+                    const match = SystemState.registryDatabase.chats.find(c => c.id === targetNodeInput);
+                    if (match) {
+                        ModalsEngine.closeAll();
+                        DirectoryEngine.selectEntity(targetNodeInput);
+                        return;
+                    }
+
+                    // Check if server validation arrays are active down the route pointers
+                    if (SystemState.socket && SystemState.socket.connected) {
+                        SystemState.socket.emit('check-node-existence', { target: targetNodeInput }, (response) => {
+                            if (response && response.exists) {
+                                const newTargetNode = { id: targetNodeInput, alias: `Terminal Address [${targetNodeInput}]`, type: 'chat', messages: [] };
+                                SystemState.registryDatabase.chats.push(newTargetNode);
+                                DirectoryEngine.renderActiveContextList();
+                                DirectoryEngine.selectEntity(targetNodeInput);
+                                ModalsEngine.closeAll();
+                                ToastEngine.trigger("Pipeline Secure", "Direct network link path initialized.");
+                            } else {
+                                alert("Transmission Blocked: Target routing address node verification check failed on current directory server layers.");
+                            }
+                        });
+                    } else {
+                        // Simulation fallback injection
+                        const newTargetNode = { id: targetNodeInput, alias: `Terminal Address [${targetNodeInput}]`, type: 'chat', messages: [] };
+                        SystemState.registryDatabase.chats.push(newTargetNode);
+                        DirectoryEngine.renderActiveContextList();
+                        DirectoryEngine.selectEntity(targetNodeInput);
+                        ModalsEngine.closeAll();
+                        ToastEngine.trigger("Pipeline Secure", "Simulated local sandbox link channel allocated cleanly.");
+                    }
+                },
+                spawnAutomaton: () => {
+                    document.getElementById('bot-status-frame').innerText = "🤖 Mock Echo Bot Active: Scanning local network frame arrays.";
+                    ToastEngine.trigger("Automation Subprocess Engine", "Local agent process instance booted successfully inside isolated sandbox spaces.");
+                }
+            };
+
+            // Overlay Management Controllers
+            const ModalsEngine = {
+                show: (modalId) => {
+                    const target = document.getElementById(modalId);
+                    if (target) target.style.display = 'flex';
+                },
+                closeAll: () => {
+                    document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+                }
+            };
+
+            // Simulation Layer UI Sandbox Helpers
+            const MockInteractionEngine = {
+                simulateFileAttachment: () => {
+                    if (!SystemState.selectedEntityId) return;
+                    const assets = ["Encrypted_Storage_Container_Blob.bin", "Secure_Hardware_Keyring_Signature.asc", "Voice_Transcode_Stream_Vector.opus"];
+                    const pick = assets[Math.floor(Math.random() * assets.length)];
+                    
+                    const field = document.getElementById('terminal-input-field');
+                    field.value = `[ATTACHMENT_STREAM_HASH_BLOB: ${pick} (142 KB)] - Cryptographic envelope bound.`;
+                    ToastEngine.trigger("Sandbox File Read System", "Payload data blocks parsed and staged safely into local operational buffers.");
+                },
+                votePoll: (element) => {
+                    const parent = element.parentElement;
+                    parent.innerHTML = `
+                        <div style="font-size:11px; font-family:monospace; color:var(--crypto-green); padding-top:4px;">
+                            ✓ Selection Log Transmission Locked: 100% Core Consensus Achieved.
+                        </div>
+                    `;
+                    ToastEngine.trigger("Vote Dispatch Processed", "Mnemonic polling tracking state signatures broadcast down channel metrics.");
+                }
+            };
+
+            return {
+                Identity: IdentityEngine,
+                Navigation: NavigationEngine,
+                Directory: DirectoryEngine,
+                Messaging: MessagingEngine,
+                Voip: VoipEngine,
+                Bridge: BridgeEngine,
+                Modals: ModalsEngine,
+                MockInteraction: MockInteractionEngine
+            };
+
+        })();
+
+        // Global Escape Key Window Interceptor Framework Listener
+        window.addEventListener('keydown', (e) => {
+            if(e.key === 'Escape') AppEngine.Modals.closeAll();
+        });
+    </script>
+</body>
+</html>
